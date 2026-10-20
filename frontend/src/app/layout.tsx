@@ -1,21 +1,16 @@
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Poppins } from "next/font/google"
 
+import { ThemeProvider } from "@/components/providers/theme-provider"
 import { siteConfig } from "@/config/site"
 import { buildMetadata } from "@/lib/seo/metadata"
 
 import "./globals.css"
 
-// Swap for the fonts in the design; keep the CSS variable names.
-const fontSans = Geist({
-  variable: "--font-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
-  display: "swap",
-})
-
-const fontMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 })
 
@@ -35,8 +30,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${fontSans.variable} ${fontMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col">{children}</body>
+    <html lang="en" className={`${poppins.variable} h-full`} suppressHydrationWarning>
+      <body className="flex min-h-full flex-col">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   )
 }
