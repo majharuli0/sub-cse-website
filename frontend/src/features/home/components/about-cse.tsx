@@ -2,7 +2,7 @@ import Image from "next/image"
 import { ChevronRight } from "lucide-react"
 
 import { Container } from "@/components/layout/container"
-import { Parallax } from "@/components/shared/parallax"
+import { Parallax, ParallaxLayer } from "@/components/shared/parallax"
 import { Reveal } from "@/components/shared/reveal"
 import { SmartLink } from "@/components/shared/smart-link"
 import { aboutCse } from "@/features/home/data/about"
@@ -28,26 +28,28 @@ export function AboutCse() {
       />
 
       <Container>
-        <Reveal className="rounded-md bg-card p-[22px] shadow-card sm:p-[30px] lg:max-w-[420px]">
-          <p className="text-sm font-bold text-brand-ink">{aboutCse.eyebrow}</p>
-          <h2 id="about-cse-heading" className="mt-1.5 mb-2.5 text-[32px] leading-[1.15] font-bold text-heading">
-            {aboutCse.title}
-          </h2>
-          <p className="mb-4 text-ink-2">{aboutCse.body}</p>
-          <ul>
-            {aboutCse.links.map((link) => (
-              <li key={link.label}>
-                <SmartLink
-                  href={link.href}
-                  className="group flex items-center justify-between border-t border-line py-3 font-medium text-foreground hover:text-heading"
-                >
-                  {link.label}
-                  <ChevronRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </SmartLink>
-              </li>
-            ))}
-          </ul>
-        </Reveal>
+        <ParallaxLayer speed={70}>
+          <Reveal className="rounded-md bg-card p-[22px] shadow-card sm:p-[30px] lg:max-w-[420px]">
+            <p className="text-sm font-bold text-brand-ink">{aboutCse.eyebrow}</p>
+            <h2 id="about-cse-heading" className="mt-1.5 mb-2.5 text-[32px] leading-[1.15] font-bold text-heading">
+              {aboutCse.title}
+            </h2>
+            <p className="mb-4 text-ink-2">{aboutCse.body}</p>
+            <ul>
+              {aboutCse.links.map((link) => (
+                <li key={link.label}>
+                  <SmartLink
+                    href={link.href}
+                    className="group flex items-center justify-between border-t border-line py-3 font-medium text-foreground hover:text-heading"
+                  >
+                    {link.label}
+                    <ChevronRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  </SmartLink>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+        </ParallaxLayer>
       </Container>
     </section>
   )

@@ -36,7 +36,7 @@ export function Alumni() {
 
 function AlumniCard({ person, gradient }: { person: Alumnus; gradient: string }) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-card shadow-soft transition-[transform,box-shadow] duration-300 ease-soft hover:-translate-y-1.5 hover:shadow-lift">
+    <article className="flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-card shadow-soft">
       <div className="h-[92px] border-b border-line-soft px-[22px] py-4 sm:h-[104px]">
         {person.logo ? (
           // Logos are dark-on-light artwork, so they sit on a white plate in both themes.

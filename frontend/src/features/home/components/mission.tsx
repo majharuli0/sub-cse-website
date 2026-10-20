@@ -1,7 +1,7 @@
 import Image from "next/image"
 
 import { Container } from "@/components/layout/container"
-import { Parallax } from "@/components/shared/parallax"
+import { Parallax, ParallaxLayer } from "@/components/shared/parallax"
 import { Kicker } from "@/components/shared/kicker"
 import { Reveal } from "@/components/shared/reveal"
 import { missionPillars, vision } from "@/features/home/data/about"
@@ -22,22 +22,24 @@ export function Mission() {
       />
 
       <Container className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] xl:gap-[72px]">
-        <Reveal>
-          <Kicker>Our vision</Kicker>
-          <h2 id="mission-heading" className="sr-only">
-            Vision and mission
-          </h2>
-          <blockquote className="mb-7 text-[25px] leading-[1.3] font-medium tracking-[-0.015em] lg:text-[32px] xl:text-[38px]">
-            {vision.before}
-            <span className="text-highlight">{vision.highlight}</span>
-            {vision.after}
-          </blockquote>
-          <a href={vision.link.href} className="underline underline-offset-4 hover:text-highlight">
-            {vision.link.label}
-          </a>
-        </Reveal>
+        <ParallaxLayer speed={30}>
+          <Reveal>
+            <Kicker>Our vision</Kicker>
+            <h2 id="mission-heading" className="sr-only">
+              Vision and mission
+            </h2>
+            <blockquote className="mb-7 text-[25px] leading-[1.3] font-medium tracking-[-0.015em] lg:text-[32px] xl:text-[38px]">
+              {vision.before}
+              <span className="text-highlight">{vision.highlight}</span>
+              {vision.after}
+            </blockquote>
+            <a href={vision.link.href} className="underline underline-offset-4 hover:text-highlight">
+              {vision.link.label}
+            </a>
+          </Reveal>
+        </ParallaxLayer>
 
-        <div>
+        <ParallaxLayer speed={90}>
           <Reveal>
             <Kicker>Our mission</Kicker>
           </Reveal>
@@ -59,7 +61,7 @@ export function Mission() {
               </Reveal>
             ))}
           </ul>
-        </div>
+        </ParallaxLayer>
       </Container>
     </section>
   )

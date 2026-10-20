@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { useLenis } from "lenis/react"
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react"
-import { AnimatePresence, m, type Transition, type Variants } from "motion/react"
+import { AnimatePresence, m, useInView, type Transition, type Variants } from "motion/react"
 
 import { FilterPills } from "@/components/shared/filter-pills"
 import { MoreLink } from "@/components/shared/more-link"
+import { ParallaxImage } from "@/components/shared/parallax"
 import { SectionHeader } from "@/components/shared/section"
 import { links } from "@/config/site"
+import { useImagesLoaded } from "@/hooks/useImagesLoaded"
 import { cn } from "@/lib/utils"
 import { galleryFilters, galleryItems } from "@/features/home/data/gallery"
 import type { GalleryCategory, GalleryItem } from "@/features/home/types"
@@ -78,25 +80,13 @@ export function GalleryBrowser() {
       >
         <AnimatePresence mode="popLayout">
           {items.map((item, i) => (
-            <m.li
-              key={item.src}
-              layout
-              variants={tileVariants}
-              initial="hidden"
-              whileInView="shown"
-              exit="exit"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ layout: { duration: 0.6, ease: EASE_SWING } }}
-              className={cn("relative", bento && bentoSlots[i])}
-            >
-              <m.div className="size-full" variants={curtainVariants} custom={(i % 6) * 0.08}>
-                <GalleryTile
-                  item={item}
-                  expanded={viewer?.origin === i}
-                  onOpen={() => setViewer({ origin: i, current: i })}
-                />
-              </m.div>
-            </m.li>
+            <GalleryCell key={item.src} delay={(i % 6) * 0.08} className={cn(bento && bentoSlots[i])}>
+              <GalleryTile
+                item={item}
+                expanded={viewer?.origin === i}
+                onOpen={() => setViewer({ origin: i, current: i })}
+              />
+            </GalleryCell>
           ))}
         </AnimatePresence>
       </ul>
@@ -112,6 +102,48 @@ export function GalleryBrowser() {
         )}
       </AnimatePresence>
     </>
+  )
+}
+
+type GalleryCellProps = {
+  delay: number
+  className?: string
+  children: React.ReactNode
+  /** Passed by AnimatePresence (popLayout) to measure exiting tiles. */
+  ref?: React.Ref<HTMLLIElement>
+}
+
+/**
+ * Grid cell: glides to new positions when filtering, fades out when filtered away,
+ * and wipes its photo in only once it's in view AND the photo has loaded.
+ */
+function GalleryCell({ delay, className, children, ref }: GalleryCellProps) {
+  const localRef = useRef<HTMLLIElement>(null)
+  const inView = useInView(localRef, { once: true, amount: 0.2 })
+  // Start fetching the photo a little before it scrolls in; reveal once in view + loaded.
+  const near = useInView(localRef, { once: true, margin: "0px 0px 400px 0px" })
+  const loaded = useImagesLoaded(localRef, near)
+  const setRefs = (node: HTMLLIElement | null) => {
+    localRef.current = node
+    if (typeof ref === "function") ref(node)
+    else if (ref) ref.current = node
+  }
+
+  return (
+    <m.li
+      ref={setRefs}
+      layout
+      variants={tileVariants}
+      initial="hidden"
+      animate={inView && loaded ? "shown" : "hidden"}
+      exit="exit"
+      transition={{ layout: { duration: 0.6, ease: EASE_SWING } }}
+      className={cn("relative", className)}
+    >
+      <m.div className="size-full" variants={curtainVariants} custom={delay}>
+        {children}
+      </m.div>
+    </m.li>
   )
 }
 
@@ -131,14 +163,16 @@ function GalleryTile({ item, expanded, onOpen }: { item: GalleryItem; expanded: 
           className="absolute inset-0 overflow-hidden"
           style={{ borderRadius: 16 }}
         >
-          <Image
-            src={item.src}
-            alt=""
-            fill
-            sizes="(min-width: 861px) 50vw, 100vw"
-            className="object-cover"
-            style={{ objectPosition: item.position }}
-          />
+          <ParallaxImage strength={7}>
+            <Image
+              src={item.src}
+              alt=""
+              fill
+              sizes="(min-width: 861px) 50vw, 100vw"
+              className="object-cover"
+              style={{ objectPosition: item.position }}
+            />
+          </ParallaxImage>
           <span className="absolute inset-x-0 bottom-0 flex translate-y-1 flex-col items-start gap-1.5 bg-[linear-gradient(to_top,rgba(10,18,40,.78),rgba(10,18,40,0))] px-2.5 pt-7 pb-2.5 transition-transform duration-500 ease-soft group-hover:translate-y-0 sm:px-4 sm:pt-10 sm:pb-3.5">
             <span className="rounded-full bg-white/92 px-2.5 py-0.5 text-[11.5px] font-semibold text-[#12285a]">
               {item.category}
@@ -271,8 +305,13 @@ function Lightbox({ items, viewer, onStep, onClose }: LightboxProps) {
         </button>
       </m.div>
 
-      <div className="pointer-events-none relative flex min-h-0 flex-1 items-center justify-center px-16 sm:px-24">
-        <LightboxArrow label="Previous photo" onClick={() => step(-1)} className="left-3 sm:left-6" {...chrome}>
+      <div className="pointer-events-none relative flex min-h-0 flex-1 items-center justify-center sm:px-24">
+        <LightboxArrow
+          label="Previous photo"
+          onClick={() => step(-1)}
+          className="absolute top-1/2 left-6 hidden -translate-y-1/2 sm:grid"
+          {...chrome}
+        >
           <ChevronLeft className="size-5" />
         </LightboxArrow>
 
@@ -282,36 +321,56 @@ function Lightbox({ items, viewer, onStep, onClose }: LightboxProps) {
           transition={CARD_SPRING}
           className="pointer-events-auto relative overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,.45)]"
           style={{
-            borderRadius: 16,
+            borderRadius: 0,
             aspectRatio: `${shown.width} / ${shown.height}`,
-            width: `min(100%, calc((100dvh - 210px) * ${ratio}))`,
+            width: `min(100%, calc((100dvh - 230px) * ${ratio}))`,
           }}
         >
           <AnimatePresence initial={false} custom={direction}>
             <m.div
               key={shown.src}
-              className="absolute inset-0"
               custom={direction}
               variants={slideVariants}
               initial="enter"
               animate="center"
               exit="exit"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.7}
+              onDragEnd={(_, { offset, velocity }) => {
+                const swipe = Math.abs(offset.x) > 70 || Math.abs(velocity.x) > 500
+                if (swipe) step(offset.x > 0 ? 1 : -1)
+              }}
+              className="absolute inset-0 cursor-grab touch-pan-y active:cursor-grabbing"
             >
               <Image src={shown.src} alt={shown.title} fill sizes="100vw" className="object-cover" />
             </m.div>
           </AnimatePresence>
         </m.div>
 
-        <LightboxArrow label="Next photo" onClick={() => step(1)} className="right-3 sm:right-6" {...chrome}>
+        <LightboxArrow
+          label="Next photo"
+          onClick={() => step(1)}
+          className="absolute top-1/2 right-6 hidden -translate-y-1/2 sm:grid"
+          {...chrome}
+        >
           <ChevronRight className="size-5" />
         </LightboxArrow>
       </div>
 
-      <m.div className="flex flex-col items-center gap-2 px-5 pt-4 pb-6 text-center" {...chrome}>
-        <span className="rounded-full bg-white/92 px-2.5 py-0.5 text-[11.5px] font-semibold text-[#12285a]">
-          {item.category}
-        </span>
-        <p className="text-[15px]">{item.title}</p>
+      <m.div className="flex items-center justify-between gap-3 px-4 pt-4 pb-6 sm:justify-center sm:px-5" {...chrome}>
+        <LightboxArrow label="Previous photo" onClick={() => step(-1)} className="sm:hidden">
+          <ChevronLeft className="size-5" />
+        </LightboxArrow>
+        <div className="flex min-w-0 flex-col items-center gap-2 text-center">
+          <span className="rounded-full bg-white/92 px-2.5 py-0.5 text-[11.5px] font-semibold text-[#12285a]">
+            {item.category}
+          </span>
+          <p className="text-[15px]">{item.title}</p>
+        </div>
+        <LightboxArrow label="Next photo" onClick={() => step(1)} className="sm:hidden">
+          <ChevronRight className="size-5" />
+        </LightboxArrow>
       </m.div>
     </div>
   )
@@ -325,7 +384,7 @@ function LightboxArrow({ label, className, children, ...props }: LightboxArrowPr
       type="button"
       aria-label={label}
       className={cn(
-        "pointer-events-auto absolute top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-white/30 bg-white/6 backdrop-blur-sm transition-colors hover:bg-white/16 sm:size-12",
+        "pointer-events-auto z-10 grid size-11 shrink-0 place-items-center rounded-full border border-white/30 bg-white/6 backdrop-blur-sm transition-colors hover:bg-white/16 sm:size-12",
         className
       )}
       {...props}

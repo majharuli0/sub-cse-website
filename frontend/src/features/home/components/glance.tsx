@@ -3,6 +3,7 @@ import Link from "next/link"
 import { GraduationCap, Play, Users } from "lucide-react"
 
 import { CountUp } from "@/components/shared/count-up"
+import { ParallaxImage } from "@/components/shared/parallax"
 import { Reveal } from "@/components/shared/reveal"
 import { Section, SectionHeader } from "@/components/shared/section"
 import { cn } from "@/lib/utils"
@@ -28,14 +29,16 @@ export function Glance() {
 
         <Reveal index={1}>
           <Link href="#life" className={cn(tile, "group relative isolate overflow-hidden text-white")}>
-            <Image
-              src="/images/tech-carnival-colors.jpg"
-              alt=""
-              fill
-              sizes="(min-width: 861px) 25vw, 50vw"
-              className="-z-20 object-cover"
-              style={{ objectPosition: "45% 72%" }}
-            />
+            <ParallaxImage className="-z-20">
+              <Image
+                src="/images/tech-carnival-colors.jpg"
+                alt=""
+                fill
+                sizes="(min-width: 861px) 25vw, 50vw"
+                className="object-cover"
+                style={{ objectPosition: "45% 72%" }}
+              />
+            </ParallaxImage>
             <span
               aria-hidden
               className="absolute inset-0 -z-10 bg-[linear-gradient(to_top,rgba(11,26,61,.88)_0%,rgba(11,26,61,.35)_55%,rgba(11,26,61,.1)_100%)]"

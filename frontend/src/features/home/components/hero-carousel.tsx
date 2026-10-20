@@ -1,14 +1,27 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState, useSyncExternalStore } from "react"
 import Image from "next/image"
-import { m, useScroll, useTransform } from "motion/react"
+import { m, useReducedMotion, useScroll, useTransform } from "motion/react"
 
 import { Container } from "@/components/layout/container"
 import { cn } from "@/lib/utils"
 import type { HeroSlide } from "@/features/home/types"
 
 const INTERVAL_MS = 6000
+const OVERLAY_QUERY = "(min-width: 561px)" // text sits over the photo from `sm`
+
+function useOverlayLayout() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const media = window.matchMedia(OVERLAY_QUERY)
+      media.addEventListener("change", onChange)
+      return () => media.removeEventListener("change", onChange)
+    },
+    () => window.matchMedia(OVERLAY_QUERY).matches,
+    () => false
+  )
+}
 
 type HeroCarouselProps = {
   slides: HeroSlide[]
@@ -25,6 +38,12 @@ export function HeroCarousel({ slides, content }: HeroCarouselProps) {
   // Photos drift down a little as the page scrolls past the hero (parallax).
   const { scrollY } = useScroll()
   const parallaxY = useTransform(scrollY, [0, 900], ["0%", "12%"])
+  // The headline rises and fades faster than the photo → the photo feels behind it.
+  const textY = useTransform(scrollY, [0, 600], [0, -110])
+  const textOpacity = useTransform(scrollY, [0, 520], [1, 0])
+  const overlay = useOverlayLayout()
+  const reduceMotion = useReducedMotion()
+  const textDepth = overlay && !reduceMotion
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
@@ -92,7 +111,10 @@ export function HeroCarousel({ slides, content }: HeroCarouselProps) {
         </div>
       </div>
 
-      <div className="sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-[82px]">
+      <m.div
+        className="sm:pointer-events-none sm:absolute sm:inset-x-0 sm:bottom-[82px]"
+        style={textDepth ? { y: textY, opacity: textOpacity } : undefined}
+      >
         {/* key={index} replays the text animation on every slide change */}
         <Container key={index} className="pt-5 pb-1 sm:p-0 sm:px-10">
           <p className="animate-fade-up text-[15px] font-semibold text-warm sm:text-base sm:text-highlight sm:[text-shadow:0_2px_12px_rgba(8,16,40,.5)]">
@@ -103,12 +125,15 @@ export function HeroCarousel({ slides, content }: HeroCarouselProps) {
             className="mt-2 max-w-[780px] text-[32px] leading-[1.08] font-semibold tracking-[-0.02em] text-heading sm:text-[38px] sm:text-white sm:[text-shadow:0_2px_16px_rgba(8,16,40,.45)] xl:text-[44px] 3xl:text-[54px]"
           >
             {words.map((word, i) => (
-              <span key={i} aria-hidden className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-bottom">
-                <span className="animate-word-rise inline-block" style={{ animationDelay: `${120 + i * 70}ms` }}>
-                  {word}
+              <Fragment key={i}>
+                {/* The space must sit between the masks: inline-blocks drop trailing whitespace. */}
+                {i > 0 && " "}
+                <span aria-hidden className="-mb-[0.14em] inline-block overflow-hidden pb-[0.14em] align-bottom">
+                  <span className="animate-word-rise inline-block" style={{ animationDelay: `${120 + i * 70}ms` }}>
+                    {word}
+                  </span>
                 </span>
-                {i < words.length - 1 && " "}
-              </span>
+              </Fragment>
             ))}
           </h1>
           <p
@@ -118,7 +143,7 @@ export function HeroCarousel({ slides, content }: HeroCarouselProps) {
             {content.lead}
           </p>
         </Container>
-      </div>
+      </m.div>
     </section>
   )
 }

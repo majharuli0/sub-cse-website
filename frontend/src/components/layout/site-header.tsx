@@ -36,7 +36,7 @@ export function SiteHeader() {
       {/* Main row */}
       <Container className="flex h-[68px] items-center justify-between gap-2.5 sm:h-20 sm:gap-6">
         <Brand />
-        <MegaMenu items={mainNav} />
+        <MegaMenu />
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
           <Button asChild variant="brand" size="brand" className="hidden md:inline-flex">

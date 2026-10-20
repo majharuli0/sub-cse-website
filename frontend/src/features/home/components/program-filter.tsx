@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Search } from "lucide-react"
 
 import { FilterPills } from "@/components/shared/filter-pills"
+import { ParallaxImage } from "@/components/shared/parallax"
 import { Reveal } from "@/components/shared/reveal"
 import { SmartLink } from "@/components/shared/smart-link"
 import { programLevelLabel, programLevels, programs } from "@/features/home/data/programs"
@@ -40,14 +41,16 @@ export function ProgramFilter() {
               className="group grid h-full grid-cols-[110px_minmax(0,1fr)] overflow-hidden rounded-md border border-line bg-card transition-[box-shadow,translate] duration-300 ease-soft hover:-translate-y-1 hover:shadow-card sm:block"
             >
               <Reveal variant="image" index={i} className="relative min-h-[110px] overflow-hidden sm:h-[150px]">
-                <Image
-                  src={program.image.src}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1101px) 25vw, (min-width: 561px) 50vw, 110px"
-                  className="object-cover"
-                  style={{ objectPosition: program.image.position }}
-                />
+                <ParallaxImage strength={6}>
+                  <Image
+                    src={program.image.src}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1101px) 25vw, (min-width: 561px) 50vw, 110px"
+                    className="object-cover"
+                    style={{ objectPosition: program.image.position }}
+                  />
+                </ParallaxImage>
               </Reveal>
               <span className="block px-3.5 py-3 sm:p-4">
                 <span className={`flex items-center gap-1.5 text-[13px] font-semibold ${levelColor[program.level]}`}>

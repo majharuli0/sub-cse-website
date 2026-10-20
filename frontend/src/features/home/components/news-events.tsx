@@ -1,6 +1,7 @@
 import Image from "next/image"
 
 import { MoreLink } from "@/components/shared/more-link"
+import { ParallaxImage } from "@/components/shared/parallax"
 import { Reveal } from "@/components/shared/reveal"
 import { Section, SectionHeader } from "@/components/shared/section"
 import { SmartLink } from "@/components/shared/smart-link"
@@ -26,14 +27,16 @@ export function NewsEvents() {
               className="group grid items-center gap-4 border-b border-line pb-6 md:grid-cols-2 md:gap-6"
             >
               <Reveal variant="image" className="relative aspect-[16/10] overflow-hidden rounded-xl md:aspect-[4/3]">
-                <Image
-                  src={featuredNews.image.src}
-                  alt={featuredNews.image.alt}
-                  fill
-                  sizes="(min-width: 861px) 30vw, (min-width: 681px) 45vw, 100vw"
-                  className="object-cover"
-                  style={{ objectPosition: featuredNews.image.position }}
-                />
+                <ParallaxImage>
+                  <Image
+                    src={featuredNews.image.src}
+                    alt={featuredNews.image.alt}
+                    fill
+                    sizes="(min-width: 861px) 30vw, (min-width: 681px) 45vw, 100vw"
+                    className="object-cover"
+                    style={{ objectPosition: featuredNews.image.position }}
+                  />
+                </ParallaxImage>
               </Reveal>
               <span>
                 <NewsMeta item={featuredNews} />
